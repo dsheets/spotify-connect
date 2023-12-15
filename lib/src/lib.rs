@@ -34,7 +34,7 @@ impl fmt::Display for Error {
                 "Could not get device information from {base_url}: {e}"
             )),
             Error::CouldNotAddUser(e) => f.write_fmt(format_args!(
-                "Authentication on the remote remote device failed: {e}"
+                "Authentication on the remote device failed: {e}"
             )),
             Error::EncryptionFailed(e) => {
                 f.write_fmt(format_args!("Encryption of credentials failed: {e}"))
