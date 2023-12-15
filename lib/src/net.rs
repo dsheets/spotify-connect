@@ -31,7 +31,8 @@ pub fn get_device_info(base_url: &str) -> Result<DeviceInfo, Error> {
         response
             .as_str()
             .map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?,
-    ).map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?;
+    )
+    .map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?;
 
     Ok(device_info)
 }
