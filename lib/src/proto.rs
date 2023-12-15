@@ -97,7 +97,7 @@ pub fn encrypt_blob(
     blob: &str,
     local_keys: &DhLocalKeys,
     remote_device_key: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
     let remote_device_key = base64::decode(remote_device_key)?;
     let shared_key = local_keys.shared_secret(&remote_device_key);
 

@@ -18,11 +18,11 @@ pub enum AuthType {
 
 #[derive(Debug)]
 pub enum Error {
-    CouldNotGetDeviceInfo(String, Box<dyn error::Error>),
-    CouldNotAddUser(Box<dyn error::Error>),
-    EncryptionFailed(Box<dyn error::Error>),
+    CouldNotGetDeviceInfo(String, Box<dyn error::Error + Send + Sync>),
+    CouldNotAddUser(Box<dyn error::Error + Send + Sync>),
+    EncryptionFailed(Box<dyn error::Error + Send + Sync>),
     MissingClientId,
-    AccessTokenRetrievalFailure(Box<dyn error::Error>),
+    AccessTokenRetrievalFailure(Box<dyn error::Error + Send + Sync>),
 }
 
 impl error::Error for Error {}
@@ -60,7 +60,7 @@ pub fn authenticate(
 
     // Get device information
     let device_info = net::get_device_info(&base_url)
-        .map_err(|e| Error::CouldNotGetDeviceInfo(base_url.clone(), e))?;
+        .map_err(|e| Error::CouldNotGetDeviceInfo(base_url.clone(), e.into()))?;
     info!("Found `{}`. Trying to connect...", device_info.remote_name);
 
     let (blob, my_public_key) = match auth_type {

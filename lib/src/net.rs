@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha1::{Digest, Sha1};
 
+use crate::Error;
+
 // see <https://developer.spotify.com/documentation/commercial-hardware/implementation/guides/zeroconf>
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,12 +20,17 @@ pub struct DeviceInfo {
 }
 
 /// Get the necessary information from the remote device
-pub fn get_device_info(base_url: &str) -> Result<DeviceInfo, Box<dyn std::error::Error>> {
+pub fn get_device_info(base_url: &str) -> Result<DeviceInfo, Error> {
     let response = minreq::get(base_url)
         .with_param("action", "getInfo")
-        .send()?;
+        .send()
+        .map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?;
 
-    let device_info = serde_json::from_str(response.as_str()?)?;
+    let device_info = serde_json::from_str(
+        response
+            .as_str()
+            .map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?,
+    ).map_err(|e| Error::CouldNotGetDeviceInfo(String::from(base_url), e.into()))?;
 
     Ok(device_info)
 }
@@ -35,7 +42,7 @@ pub fn add_user(
     blob: &str,
     my_public_key: &str,
     token_type: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let device_id = hex::encode(Sha1::digest("spotify-connect".as_bytes()));
     let login_id = hex::encode(rand::thread_rng().gen::<[u8; 16]>());
 

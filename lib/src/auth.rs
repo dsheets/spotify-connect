@@ -31,7 +31,7 @@ pub fn create_reusable_credentials(
 /// Transform existing credentials into token credentials
 pub fn change_to_token_credentials(
     credentials: Credentials,
-) -> Result<Credentials, Box<dyn std::error::Error>> {
+) -> Result<Credentials, Box<dyn std::error::Error + Send + Sync>> {
     let username = credentials.username.clone();
 
     // By default, use the clientID of the official Spotify client
@@ -49,12 +49,15 @@ pub fn get_token(
     credentials: Credentials,
     client_id: &str,
     scope: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
     let token = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?
         .block_on(async {
-            let config = SessionConfig { client_id: client_id.to_string(), ..Default::default() };
+            let config = SessionConfig {
+                client_id: client_id.to_string(),
+                ..Default::default()
+            };
             let session = Session::new(config, None);
 
             let store_credentials = false;
@@ -65,7 +68,7 @@ pub fn get_token(
                 .get_token(scope)
                 .await
                 .map_err(|e| {
-                    <Box<dyn std::error::Error>>::from(format!(
+                    <Box<dyn std::error::Error + Send + Sync>>::from(format!(
                         "Unable to get a Spotify token: {e}"
                     ))
                 })
